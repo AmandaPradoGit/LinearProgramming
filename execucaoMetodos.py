@@ -2,7 +2,7 @@ import random
 import math
 from copy import deepcopy
 
-# Matriz de distâncias fixa para FIXO
+# Matriz de distâncias fixa
 DISTANCIAS_FIXO = [
     [0,  10, 20, 5,  15, 20, 20, 10],
     [10, 0,  5,  15, 13, 5,  15, 25],
@@ -93,39 +93,40 @@ class CaixeiroViajante:
         return self._solucao_para_string()
     
     def _gerar_vizinho(self, rota):
-        """Gera um vizinho trocando duas cidades (2-opt)"""
-        novo = deepcopy(rota)
+        """Gera um vizinho trocando duas cidades aleatórias"""
+        novo = rota[:]
         i, j = random.sample(range(len(novo)), 2)
         novo[i], novo[j] = novo[j], novo[i]
         return novo
     
-    def subida_encosta(self):
-        """Subida de Encosta - Greedy local search"""
+    def subida_encosta(self, max_iter=1000):
+        """Subida de Encosta"""
         if not self.solucao_atual:
             return "Gere a solução inicial primeiro!"
-        
-        melhoria = True
+
+        atual = self.solucao_atual[:]
+        custo_atual = self._calcular_distancia(atual)
         iteracoes = 0
-        
-        while melhoria:
-            melhoria = False
+        melhoria = True
+
+        while melhoria and iteracoes < max_iter:
             iteracoes += 1
-            
-            for i in range(len(self.solucao_atual)):
-                for j in range(i + 1, len(self.solucao_atual)):
-                    novo = deepcopy(self.solucao_atual)
-                    novo[i], novo[j] = novo[j], novo[i]
-                    novo_valor = self._calcular_distancia(novo)
-                    
-                    if novo_valor < self.valor_atual:
-                        self.solucao_atual = novo
-                        self.valor_atual = novo_valor
-                        melhoria = True
-                        
-                        if novo_valor < self.melhor_valor:
-                            self.melhor_valor = novo_valor
-                            self.melhor_solucao = deepcopy(novo)
-        
+            melhoria = False
+            vizinho = self._gerar_vizinho(atual)
+            custo_vizinho = self._calcular_distancia(vizinho)
+            delta = custo_vizinho - custo_atual
+
+            if delta < 0:
+                atual = vizinho
+                custo_atual = custo_vizinho
+                melhoria = True
+
+        self.solucao_atual = atual
+        self.valor_atual = custo_atual
+        if custo_atual < self.melhor_valor:
+            self.melhor_valor = custo_atual
+            self.melhor_solucao = atual[:]
+
         s = f"Subida de Encosta (iterações: {iteracoes})\n"
         s += self._solucao_para_string()
         return s
@@ -134,74 +135,77 @@ class CaixeiroViajante:
         """Subida de Encosta com Tentativas"""
         if not self.solucao_atual:
             return "Gere a solução inicial primeiro!"
-        
-        melhor_global = deepcopy(self.melhor_solucao)
-        melhor_valor_global = self.melhor_valor
-        
+
+        melhor_global = self.solucao_atual[:]
+        melhor_valor_global = self._calcular_distancia(melhor_global)
+        n = len(self.distancias)
+
         for tentativa in range(tmax):
-            # Realiza busca local
+            atual = list(range(n))
+            random.shuffle(atual)
+            custo_atual = self._calcular_distancia(atual)
+            iteracoes = 0
             melhoria = True
-            while melhoria:
-                melhoria = False
-                for i in range(len(self.solucao_atual)):
-                    for j in range(i + 1, len(self.solucao_atual)):
-                        novo = deepcopy(self.solucao_atual)
-                        novo[i], novo[j] = novo[j], novo[i]
-                        novo_valor = self._calcular_distancia(novo)
-                        
-                        if novo_valor < self.valor_atual:
-                            self.solucao_atual = novo
-                            self.valor_atual = novo_valor
-                            melhoria = True
-                            
-                            if novo_valor < melhor_valor_global:
-                                melhor_valor_global = novo_valor
-                                melhor_global = deepcopy(novo)
-            
-            # Se não é a última tentativa, gera nova solução aleatória
-            if tentativa < tmax - 1:
-                self.solucao_atual = list(range(len(self.distancias)))
-                random.shuffle(self.solucao_atual)
-                self.valor_atual = self._calcular_distancia(self.solucao_atual)
-        
-        self.melhor_solucao = melhor_global
-        self.melhor_valor = melhor_valor_global
+
+            while melhoria and iteracoes < n * 10:
+                iteracoes += 1
+                vizinho = self._gerar_vizinho(atual)
+                custo_vizinho = self._calcular_distancia(vizinho)
+                delta = custo_vizinho - custo_atual
+
+                if delta < 0:
+                    atual = vizinho
+                    custo_atual = custo_vizinho
+                else:
+                    melhoria = False
+
+            if custo_atual < melhor_valor_global:
+                melhor_global = atual[:]
+                melhor_valor_global = custo_atual
+
         self.solucao_atual = melhor_global
         self.valor_atual = melhor_valor_global
-        
+        self.melhor_solucao = melhor_global[:]
+        self.melhor_valor = melhor_valor_global
+
         s = f"Subida de Encosta com Tentativas (TMAX={tmax})\n"
         s += self._solucao_para_string()
         return s
     
     def tempera_simulada(self, ti, tf, fr):
-        """Têmpera Simulada - Simulated Annealing"""
+        """Têmpera Simulada"""
         if not self.solucao_atual:
             return "Gere a solução inicial primeiro!"
-        
+
+        atual = self.solucao_atual[:]
+        custo_atual = self._calcular_distancia(atual)
         T = ti
         aceitacoes = 0
         rejeicoes = 0
-        
+        iteracoes = 0
+
         while T > tf:
-            for _ in range(10):  # Iterações por temperatura
-                vizinho = self._gerar_vizinho(self.solucao_atual)
-                valor_vizinho = self._calcular_distancia(vizinho)
-                delta = valor_vizinho - self.valor_atual
-                
-                if delta < 0 or random.random() < math.exp(-delta / T):
-                    self.solucao_atual = vizinho
-                    self.valor_atual = valor_vizinho
-                    aceitacoes += 1
-                    
-                    if valor_vizinho < self.melhor_valor:
-                        self.melhor_valor = valor_vizinho
-                        self.melhor_solucao = deepcopy(vizinho)
-                else:
-                    rejeicoes += 1
-            
-            T = T * fr
-        
-        s = f"Têmpera Simulada (TI={ti}, TF={tf}, FR={fr})\n"
+            iteracoes += 1
+            vizinho = self._gerar_vizinho(atual)
+            custo_vizinho = self._calcular_distancia(vizinho)
+            delta = custo_vizinho - custo_atual
+
+            if delta < 0 or random.random() < math.exp(-delta / T):
+                atual = vizinho
+                custo_atual = custo_vizinho
+                aceitacoes += 1
+            else:
+                rejeicoes += 1
+
+            T *= fr
+
+        self.solucao_atual = atual
+        self.valor_atual = custo_atual
+        if custo_atual < self.melhor_valor:
+            self.melhor_valor = custo_atual
+            self.melhor_solucao = atual[:]
+
+        s = f"Têmpera Simulada (TI={ti}, TF={tf}, FR={fr}, it={iteracoes})\n"
         s += f"Aceitações: {aceitacoes}, Rejeições: {rejeicoes}\n"
         s += self._solucao_para_string()
         return s

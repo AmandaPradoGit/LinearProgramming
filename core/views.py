@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from caixeiro import CaixeiroViajante
+from execucaoMetodos import CaixeiroViajante
 
 def home(request):
     return render(request, 'home.html')
