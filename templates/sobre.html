@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sobre - Caixeiro Viajante</title>
+    <title>Sobre - Distribuição de Fibra Óptica</title>
     {% tailwind_css %}
 </head>
 <body class="bg-base-200 min-h-screen p-8 flex items-center justify-center">
@@ -12,65 +12,80 @@
         <header class="mb-6">
             <div class="card bg-base-100 shadow-md p-8 text-center">
                 <h1 class="text-4xl font-bold text-primary">Sobre o Projeto</h1>
+                <p class="text-gray-600 mt-2">Otimização da Distribuição de Redes de Fibra Óptica</p>
             </div>
         </header>
 
+         <div class="card bg-base-100 shadow-md p-8 mb-6">
+            <h2 class="text-2xl font-bold text-primary mb-4">Discente</h2>
+            <p class="text-lg font-semibold">Amanda do Prado Gomes de Carvalho</p>
+        </div>
+
         <div class="card bg-base-100 shadow-md p-8 mb-6">
-            <h2 class="text-3xl font-bold text-primary mb-4">Problema do Caixeiro Viajante (TSP)</h2>
+            <h2 class="text-3xl font-bold text-primary mb-4">Distribuição de Redes de Fibra Óptica entre Cidades</h2>
             
-            <h3 class="text-xl font-semibold text-secondary mt-6 mb-2">Descrição do Problema</h3>
+            <h3 class="text-xl font-semibold text-secondary mt-6 mb-2">Contexto do Projeto</h3>
             <p class="text-justify mb-4">
-                O <strong>Traveling Salesman Problem (TSP)</strong> ou Problema do Caixeiro Viajante é um dos mais clássicos problemas de otimização combinatória em ciência da computação e pesquisa operacional. 
+                Este projeto aborda o problema de otimização de infraestrutura de telecomunicações, especificamente a 
+                <strong>distribuição de redes de fibra óptica entre cidades</strong>. 
+                O objetivo é determinar a melhor rota para instalar cabos de fibra óptica que conectem múltiplas cidades
+                com o menor custo (distância total).
             </p>
-            
+
             <p class="text-justify mb-4">
-                O problema pode ser descrito da seguinte forma: dado um conjunto de cidades e as distâncias entre cada par de cidades, encontrar a rota mais curta que visite cada cidade exatamente uma vez e retorne à cidade de origem. Apesar de sua formulação simples, o TSP é NP-difícil, o que significa que não há algoritmo conhecido que resolva o problema em tempo polinomial para todos os casos.
+                <strong>Desafio:</strong> Uma operadora de telecomunicações precisa conectar várias cidades através de
+                redes de fibra óptica. Cada conexão entre duas cidades tem um custo (distância, terreno, infraestrutura
+                existente). O objetivo é encontrar a rota ótima que visite todas as cidades exatamente uma vez e retorne
+                ao ponto de partida, minimizando o custo total de instalação.
             </p>
+
+            <h3 class="text-xl font-semibold text-secondary mt-6 mb-2">Formulação Matemática</h3>
+            <p class="text-justify mb-4">
+                Este problema é uma instância do <strong> Caixeiro Viajante (TSP)</strong>, onde:
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-justify mb-4">
+                <li><strong>Cidades:</strong> Pontos de distribuição ou centros urbanos que precisam estar conectados</li>
+                <li><strong>Distâncias (custos):</strong> Representam o custo de instalação de fibra óptica entre cada par de cidades</li>
+                <li><strong>Rota:</strong> Caminho que instala fibra óptica em todas as cidades com custo mínimo</li>
+                <li><strong>Objetivo:</strong> Minimizar a distância total (e consequentemente o custo) de fibra óptica instalada</li>
+            </ul>
 
             <h3 class="text-xl font-semibold text-secondary mt-6 mb-2">Métodos Implementados</h3>
             <div class="space-y-4">
-                <div>
-                    <h4 class="font-semibold text-base">1. Subida de Encosta (Hill Climbing)</h4>
-                    <p class="text-justify">Algoritmo guloso que melhora iterativamente a solução buscando vizinhos com menor custo. Para quando não encontra melhorias.</p>
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-semibold text-base mb-2">1. Subida de Encosta (Hill Climbing)</h4>
+                    <p class="text-justify text-sm">Estratégia que melhora iterativamente a rota. Começa com uma rota aleatória e busca melhorias locais até não encontrar mais. Rápido, mas pode ficar preso em soluções subótimas.</p>
                 </div>
-                <div>
-                    <h4 class="font-semibold text-base">2. Subida de Encosta com Tentativas (Multi-Start)</h4>
-                    <p class="text-justify">Executa múltiplas vezes o Subida de Encosta começando de diferentes soluções iniciais aleatórias, mantendo a melhor solução encontrada.</p>
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-semibold text-base mb-2">2. Subida de Encosta com Tentativas (Multi-Start)</h4>
+                    <p class="text-justify text-sm">Executa a Subida de Encosta múltiplas vezes começando de diferentes rotas iniciais. Aumenta a probabilidade de encontrar uma solução melhor ao explorar diferentes regiões do espaço de busca.</p>
                 </div>
-                <div>
-                    <h4 class="font-semibold text-base">3. Têmpera Simulada (Simulated Annealing)</h4>
-                    <p class="text-justify">Algoritmo metaheurístico inspirado no processo de resfriamento de metais. Aceita soluções piores com probabilidade que diminui com o tempo, permitindo escapar de ótimos locais.</p>
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-semibold text-base mb-2">3. Têmpera Simulada (Simulated Annealing)</h4>
+                    <p class="text-justify text-sm">Algoritmo inspirado em processos de resfriamento. Aceita movimentos que pioram a solução com uma probabilidade decrescente, permitindo escapar de soluções locais e explorar mais o espaço de busca.</p>
                 </div>
-                <div>
-                    <h4 class="font-semibold text-base">4. Análise Comparativa</h4>
-                    <p class="text-justify">Executa todos os métodos com diferentes configurações de parâmetros e compara os resultados, permitindo avaliar qual método oferece melhor desempenho.</p>
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-semibold text-base mb-2">4. Análise Comparativa</h4>
+                    <p class="text-justify text-sm">Executa todos os métodos com diferentes configurações de parâmetros e compara os resultados. Permite avaliar qual estratégia oferece melhor desempenho para o problema específico.</p>
                 </div>
             </div>
 
-            <h3 class="text-xl font-semibold text-secondary mt-6 mb-2">Funcionalidades da Interface</h3>
+            <h3 class="text-xl font-semibold text-secondary mt-6 mb-2">Benefícios da Otimização</h3>
             <ul class="list-disc list-inside space-y-2 text-justify">
-                <li><strong>Tipo de Execução:</strong> FIXO (matriz pré-definida) ou ALEATÓRIO (matriz gerada aleatoriamente).</li>
-                <li><strong>Tamanho do Problema:</strong> Define o número de cidades (3 a 12 para execução aleatória).</li>
-                <li><strong>Gerar Problema:</strong> Exibe a matriz de distâncias entre as cidades.</li>
-                <li><strong>Solução Inicial:</strong> Gera uma rota aleatória inicial e calcula sua distância.</li>
-                <li><strong>Executar Métodos:</strong> Aplica o método selecionado com os parâmetros especificados.</li>
+                <li><strong>Redução de Custos:</strong> Minimizar a distância de fibra óptica reduz significativamente o investimento em infraestrutura</li>
+                <li><strong>Eficiência Operacional:</strong> Menos cabos significam menos manutenção e menores custos operacionais</li>
+                <li><strong>Tempo de Implementação:</strong> Uma rota otimizada pode ser implementada mais rapidamente</li>
+                <li><strong>Escalabilidade:</strong> Os métodos podem ser adaptados para redes com centenas ou milhares de pontos de conexão</li>
             </ul>
-        </div>
 
-        <div class="card bg-base-100 shadow-md p-8 mb-6">
-            <h2 class="text-2xl font-bold text-primary mb-4">Informações do Projeto</h2>
-            <div class="space-y-3">
-                <p><strong>Disciplina:</strong> Atividades Diversas – Módulo I</p>
-                <p><strong>Data de Entrega:</strong> 08 de maio de 2026</p>
-                <p><strong>Tema:</strong> Problema do Caixeiro Viajante</p>
-                <p><strong>Tipo de Trabalho:</strong> Trabalho Prático</p>
-            </div>
-        </div>
-
-        <div class="card bg-base-100 shadow-md p-8 mb-6">
-            <h2 class="text-2xl font-bold text-primary mb-4">Discente(s)</h2>
-            <p class="text-lg">Seu Nome Aqui</p>
-            <p class="text-sm text-gray-600 mt-2">* Editar o arquivo sobre.html para adicionar nome(s)</p>
+            <h3 class="text-xl font-semibold text-secondary mt-6 mb-2">Dados de Entrada</h3>
+            <p class="text-justify mb-4">
+                O sistema oferece dois tipos de execução:
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-justify">
+                <li><strong>FIXO:</strong> Usa um conjunto predefinido de 8 cidades</li>
+                <li><strong>ALEATÓRIO:</strong> Gera diferentes cenários de distribuição urbana para testar os algoritmos em variadas situações</li>
+            </ul>
         </div>
 
         <div class="mt-6">
