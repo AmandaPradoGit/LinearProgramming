@@ -1,0 +1,23 @@
+Instruções de execução do projeto:
+
+1. Ative o ambiente virtual do projeto:
+   source venv/bin/activate
+
+2. Entre na pasta do projeto, se ainda não estiver:
+   cd /home/pessoal/ProgLinear
+
+3. Execute o servidor Django:
+   python manage.py runserver
+
+4. Abra o navegador em:
+   http://127.0.0.1:8000/
+
+5. Use a interface principal para acessar:
+   - Métodos Básicos
+   - Algoritmos Genéticos
+   - Sobre
+
+Observações:
+- A página "Algoritmos Genéticos" exibe a mensagem "Módulo em desenvolvimento".
+- A página "Métodos Básicos" permite selecionar o tipo de execução, gerar problema,
+  criar solução inicial, avaliar e executar os métodos requeridos.

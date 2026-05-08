@@ -1,0 +1,129 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métodos Básicos</title>
+    {% tailwind_css %}
+</head>
+<body class="bg-base-200 min-h-screen p-8 flex items-center justify-center">
+    <div class="max-w-4xl w-full">
+        <header class="mb-6">
+            <div class="card bg-base-100 shadow-md p-8">
+                <h1 class="text-4xl font-bold text-primary">Métodos Básicos</h1>
+                <p class="text-gray-600 mt-2">Escolha o tipo de execução, gere um problema, avalie a solução inicial e execute os métodos.</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <section class="card bg-base-100 shadow-md p-8">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="font-semibold">Tipo de Execução</label>
+                        <div class="mt-2 space-y-2">
+                            <label class="flex items-center gap-2">
+                                <input type="radio" name="exec_type" value="FIXO" class="radio" {% if exec_type == 'FIXO' %}checked{% endif %} onchange="updateMode()">
+                                FIXO
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="radio" name="exec_type" value="ALEATORIO" class="radio" {% if exec_type == 'ALEATORIO' %}checked{% endif %} onchange="updateMode()">
+                                ALEATÓRIO
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4" id="size-row">
+                        <label class="font-semibold" for="size">Tamanho do Problema</label>
+                        <input id="size" name="size" type="number" min="3" max="12" value="{{ size }}" class="input input-bordered w-full mt-2" />
+                    </div>
+
+                    <div class="mb-4">
+                        <button type="submit" name="action" value="generate" class="btn btn-primary w-full">Gerar Problema</button>
+                    </div>
+
+                    <div class="mb-4">
+                        <button type="submit" name="action" value="initial" class="btn btn-secondary w-full">Solução Inicial</button>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="font-semibold" for="method">Método</label>
+                        <select id="method" name="method" class="select select-bordered w-full mt-2" onchange="updateMethodFields()">
+                            <option value="SE" {% if method == 'SE' %}selected{% endif %}>Subida de Encosta</option>
+                            <option value="SET" {% if method == 'SET' %}selected{% endif %}>Subida de Encosta com Tentativas</option>
+                            <option value="TE" {% if method == 'TE' %}selected{% endif %}>Têmpera Simulada</option>
+                            <option value="COMP" {% if method == 'COMP' %}selected{% endif %}>Análise Comparativa</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4" id="tmax-row">
+                        <label class="font-semibold" for="tmax">TMAX</label>
+                        <input id="tmax" name="tmax" type="number" min="1" value="{{ tmax }}" class="input input-bordered w-full mt-2" />
+                    </div>
+
+                    <div class="space-y-4" id="te-params">
+                        <div>
+                            <label class="font-semibold" for="ti">TI</label>
+                            <input id="ti" name="ti" type="number" step="1" value="{{ ti }}" class="input input-bordered w-full mt-2" />
+                        </div>
+                        <div>
+                            <label class="font-semibold" for="tf">TF</label>
+                            <input id="tf" name="tf" type="number" step="0.01" value="{{ tf }}" class="input input-bordered w-full mt-2" />
+                        </div>
+                        <div>
+                            <label class="font-semibold" for="fr">FR</label>
+                            <input id="fr" name="fr" type="number" step="0.01" value="{{ fr }}" class="input input-bordered w-full mt-2" />
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <button type="submit" name="action" value="run" class="btn btn-accent w-full">Executar</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card bg-base-100 shadow-md p-6 lg:col-span-2">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-semibold mb-2">Dados do Problema</h2>
+                    <textarea readonly rows="6" class="textarea textarea-bordered w-full text-sm">{{ problem_display }}</textarea>
+                </div>
+
+                <div class="mb-6">
+                    <h2 class="text-2xl font-semibold mb-2">Solução Inicial</h2>
+                    <textarea readonly rows="3" class="textarea textarea-bordered w-full text-sm">{{ initial_display }}</textarea>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-semibold mb-2">Resultados</h2>
+                    <textarea readonly rows="6" class="textarea textarea-bordered w-full text-sm">{{ result_display }}</textarea>
+                </div>
+            </section>
+        </div>
+
+        <div class="mt-6">
+            <a href="{% url 'home' %}" class="btn btn-ghost">Voltar à Principal</a>
+        </div>
+    </div>
+
+    <script>
+        function updateMode() {
+            const checkedInput = document.querySelector('input[name="exec_type"]:checked');
+            if (!checkedInput) return;
+            const execType = checkedInput.value;
+            document.getElementById('size-row').style.display = execType === 'ALEATORIO' ? 'block' : 'none';
+        }
+
+        function updateMethodFields() {
+            const method = document.getElementById('method').value;
+            document.getElementById('tmax-row').style.display = method === 'SET' ? 'block' : 'none';
+            document.getElementById('te-params').style.display = method === 'TE' ? 'block' : 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMode();
+            updateMethodFields();
+        });
+    </script>
+</body>
+</html>

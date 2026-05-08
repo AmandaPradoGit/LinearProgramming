@@ -1,0 +1,37 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programação Linear</title>
+    {% tailwind_css %}
+</head>
+<body class="bg-base-200 min-h-screen p-8 flex items-center justify-center">
+    <div class="max-w-4xl w-full">
+        <header class="mb-6">
+            <div class="card bg-base-100 shadow-md p-8 text-center">
+                <h1 class="text-4xl font-bold text-primary">Programação Linear</h1>
+                <p class="text-gray-600 mt-2">Projeto de Algoritmos para Programação Linear</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a href="{% url 'algoritmos basicos' %}" class="card bg-base-100 shadow-md p-8 hover:shadow-lg transition-shadow">
+                <h2 class="text-2xl font-semibold text-primary mb-2">Métodos Básicos</h2>
+                <p>Selecione o tipo de execução, gere problema, solução inicial e execute métodos.</p>
+            </a>
+
+            <a href="{% url 'algoritmos geneticos' %}" class="card bg-base-100 shadow-md p-8 hover:shadow-lg transition-shadow">
+                <h2 class="text-2xl font-semibold text-primary mb-2">Algoritmos Genéticos</h2>
+                <p>Módulo em desenvolvimento.</p>
+            </a>
+
+            <a href="{% url 'sobre' %}" class="card bg-base-100 shadow-md p-8 hover:shadow-lg transition-shadow">
+                <h2 class="text-2xl font-semibold text-primary mb-2">Sobre</h2>
+                <p>Informações sobre o projeto.</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
