@@ -1,23 +1,48 @@
 Instruções de execução do projeto:
 
-1. Ative o ambiente virtual do projeto:
-   source venv/bin/activate
 
-2. Entre na pasta do projeto, se ainda não estiver:
-   cd /home/pessoal/ProgLinear
+1. Crie e ative um ambiente virtual Python.
+   Linux / macOS:
+     python3 -m venv venv
+     source venv/bin/activate
 
-3. Execute o servidor Django:
+   Windows (PowerShell):
+     python -m venv venv
+     .\venv\Scripts\Activate.ps1
+
+   Windows (Prompt de Comando):
+     python -m venv venv
+     .\venv\Scripts\activate.bat
+
+2. Instale as dependências Python necessárias.
+   pip install django django-tailwind django-browser-reload
+
+3. Instale as dependências de front-end (Tailwind).
+   cd Tailwind/static_src
+   npm install
+   npm run build
+   cd ../../
+
+4. Execute as migrações do Django.
+   python manage.py migrate
+
+5. Inicie o servidor de desenvolvimento do Django.
    python manage.py runserver
 
-4. Abra o navegador em:
+6. Abra o navegador em:
    http://127.0.0.1:8000/
 
-5. Use a interface principal para acessar:
-   - Métodos Básicos
-   - Algoritmos Genéticos
-   - Sobre
+URLs principais:
+- Home: http://127.0.0.1:8000/
+- Métodos Básicos: http://127.0.0.1:8000/algBasicos/
+- Algoritmos Genéticos: http://127.0.0.1:8000/algGeneticos/
+- Sobre: http://127.0.0.1:8000/sobre/
 
-Observações:
-- A página "Algoritmos Genéticos" exibe a mensagem "Módulo em desenvolvimento".
-- A página "Métodos Básicos" permite selecionar o tipo de execução, gerar problema,
-  criar solução inicial, avaliar e executar os métodos requeridos.
+O que fazer na aplicação:
+- "Métodos Básicos": gere o problema, crie solução inicial e execute os métodos.
+- "Algoritmos Genéticos": módulo em desenvolvimento.
+- "Sobre": informações sobre o projeto.
+
+Notas importantes:
+- Necessário ter Python 3 instalado.
+- Necessário ter Node.js e npm instalados para construir o Tailwind.
