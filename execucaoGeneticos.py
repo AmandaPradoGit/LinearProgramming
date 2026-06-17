@@ -22,7 +22,7 @@ def _gerar_populacao_com_matriz(tamanho: int, pop_size: int,
         populacao.append(individuo)
 
     cidades_inicio = random.sample(range(tamanho), min(pop_size - metade, tamanho))
-    for inicio in cidades_inicio:
+    for inicio in cidades_inicio: 
         visitados = [False] * tamanho
         rota = [inicio]
         visitados[inicio] = True
@@ -70,7 +70,7 @@ def _selecionar_por_roleta(populacao: List[List[int]], fitness: List[float]) -> 
     for idx, rank in enumerate(ranks):
         acumulado += rank
         if acumulado >= escolha:
-            return populacao[idx][:]  # Otimizado: fatiamento é mais rápido que deepcopy para List[int]
+            return populacao[idx][:]  # Fatiamento rápido para List[int]
 
     return populacao[indices_ordenados[-1]][:]
 
@@ -84,7 +84,7 @@ def _selecionar_por_torneio(populacao: List[List[int]], tournament_size: int,
     k = min(tournament_size, n)
     indices = random.sample(range(n), k)
     melhor_idx = min(indices, key=lambda i: distancias[i])
-    return populacao[melhor_idx][:]  # Otimizado: fatiamento é mais rápido que deepcopy para List[int]
+    return populacao[melhor_idx][:]  # Fatiamento rápido para List[int]
 
 
 def _selecionar_pais(populacao, fitness, distancias, metodo_selecao, tournament_size):
@@ -172,10 +172,7 @@ def _mutacao_inversao(individuo: List[int], taxa_mutacao: float) -> List[int]:
 
 def _mutacao_adaptativa(individuo: List[int], taxa_base: float,
                         geracoes_sem_melhora: int, patience: int) -> List[int]:
-    """Mutação adaptativa — aumenta a taxa quando a população está estagnada.
-
-    ajuda a escapar de ótimos locais sem abandonar boas soluções já encontradas.
-    """
+    """Mutação adaptativa — aumenta a taxa quando a população está estagnada."""
     if patience >= 1 and geracoes_sem_melhora > 0:
         fator = 1.0 + (geracoes_sem_melhora / patience) * 2.0
         taxa_efetiva = min(taxa_base * fator, 0.5)  # cap em 50%
@@ -267,7 +264,7 @@ def algoritmos_geneticos(cv, pop_size=50, generations=200,
                          **kwargs):
     
     if not getattr(cv, 'distancias', None):
-        return "Gere o problem primeiro!"
+        return "Gere o problema primeiro!"
 
     alias_map = {
         'tp': ('pop_size',       int),
@@ -304,14 +301,16 @@ def algoritmos_geneticos(cv, pop_size=50, generations=200,
     )
     crossover_fn = _crossover_pmx if crossover_op.upper() == 'PMX' else _crossover_ordem
 
+    # --- População Inicial (Geração 0) ---
     pop = _gerar_populacao_com_matriz(n, pop_size, cv.distancias)
     pop = [_validate_and_normalize_individuo(ind, n) for ind in pop]
+
+    valor_inicial_puro = min(cv._calcular_distancia(ind) for ind in pop)
 
     melhor_global        = None
     melhor_valor_global  = float('inf')
     geracoes_sem_melhora = 0
-    historico: List[float] = []   # rastreia melhor distância por geração
-    gen_final = 0                 # contagem real de gerações executadas
+    gen_final = 0                 
 
     for gen in range(generations):
         gen_final = gen + 1
@@ -336,8 +335,6 @@ def algoritmos_geneticos(cv, pop_size=50, generations=200,
         else:
             geracoes_sem_melhora += 1
 
-        historico.append(melhor_valor_global)
-
         # --- Log periódico ---
         if report_interval and gen % report_interval == 0:
             print(f"  Gen {gen:4d} | Melhor: {melhor_valor_global:.4f} "
@@ -347,13 +344,13 @@ def algoritmos_geneticos(cv, pop_size=50, generations=200,
         if patience > 0 and geracoes_sem_melhora >= patience:
             break
 
-        # --- Fitness para roleta (maior fitness = menor distância) ---
+        # --- Fitness para roleta ---
         fitness = [1.0 / (1.0 + d) for d in distancias]
 
         # --- Nova geração ---
         nova_pop: List[List[int]] = []
 
-        # Elitismo: copia diretamente os melhores usando fatiamento rápido
+        # Elitismo
         if elitism > 0:
             indices_ordenados = sorted(range(len(pop)), key=lambda i: distancias[i])
             for idx in indices_ordenados[:elitism]:
@@ -403,11 +400,8 @@ def algoritmos_geneticos(cv, pop_size=50, generations=200,
     cv.melhor_solucao = melhor_global[:]
     cv.melhor_valor   = melhor_valor_global
 
-    # --- Relatório final ---
-    melhora_total = (
-        (historico[0] - historico[-1]) / historico[0] * 100
-        if len(historico) > 1 and historico[0] > 0 else 0.0
-    )
+    # === CÁLCULO DO GANHO PERCENTUAL (100 * (vi - vf) / vi) ===
+    melhora_total = 100 * (valor_inicial_puro - melhor_valor_global) / valor_inicial_puro
 
     relatorio  = "=" * 60 + "\n"
     relatorio += "  ALGORITMO GENÉTICO — versão melhorada\n"
@@ -421,8 +415,9 @@ def algoritmos_geneticos(cv, pop_size=50, generations=200,
     relatorio += f"  Patience        : {patience}\n"
     relatorio += "-" * 60 + "\n"
     relatorio += f"  Gerações exec.  : {gen_final}\n"
+    relatorio += f"  Distância Inicial: {valor_inicial_puro:.4f}\n"
     relatorio += f"  Melhor distância: {melhor_valor_global:.4f}\n"
-    relatorio += f"  Melhora total   : {melhora_total:.1f}%\n"
+    relatorio += f"  Ganho (Melhora) : {melhora_total:.2f}%\n"
     relatorio += f"  Melhor rota     : {' -> '.join(map(str, melhor_global))} -> {melhor_global[0]}\n"
     relatorio += "=" * 60 + "\n"
     return relatorio
