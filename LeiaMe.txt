@@ -1,6 +1,5 @@
 Instruções de execução do projeto:
 
-
 1. Crie e ative um ambiente virtual Python.
    Linux / macOS:
      python3 -m venv venv

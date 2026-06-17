@@ -5,6 +5,19 @@ def home(request):
     return render(request, 'home.html')
 
 def algBasicos(request):
+    # Helpers de conversão
+    def parse_int(value, default):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
+    def parse_float(value, default):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
     # Valores padrão
     exec_type = 'FIXO'
     size = 8
@@ -43,12 +56,12 @@ def algBasicos(request):
     if request.method == 'POST':
         # Atualizar parâmetros do POST
         exec_type = request.POST.get('exec_type', 'FIXO')
-        size = int(request.POST.get('size', 8))
+        size = parse_int(request.POST.get('size', size), size)
         method = request.POST.get('method', 'SE')
-        tmax = int(request.POST.get('tmax', size))
-        ti = int(request.POST.get('ti', 100))
-        tf = float(request.POST.get('tf', 0.1))
-        fr = float(request.POST.get('fr', 0.8))
+        tmax = parse_int(request.POST.get('tmax', tmax), tmax)
+        ti = parse_int(request.POST.get('ti', ti), ti)
+        tf = parse_float(request.POST.get('tf', tf), tf)
+        fr = parse_float(request.POST.get('fr', fr), fr)
         action = request.POST.get('action', '')
         
         # Salvar na sessão
@@ -141,7 +154,127 @@ def algBasicos(request):
     return render(request, 'algBasicos.html', context)
 
 def algGeneticos(request):
-    return render(request, 'algGeneticos.html')
+    def parse_int(value, default):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
+    def parse_float(value, default):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
+    exec_type = 'FIXO'
+    size = 8
+    selection = 'ROULETTE'
+    pop_size = 40
+    generations = 100
+    crossover_rate = 0.9
+    mutation_rate = 0.1
+    tournament_size = 3
+    elitism = 1
+
+    problem_display = ''
+    result_display = ''
+
+    if 'exec_type_ga' in request.session:
+        exec_type = request.session['exec_type_ga']
+    if 'size_ga' in request.session:
+        size = request.session['size_ga']
+    if 'selection' in request.session:
+        selection = request.session['selection']
+    if 'pop_size' in request.session:
+        pop_size = request.session['pop_size']
+    if 'generations' in request.session:
+        generations = request.session['generations']
+    if 'crossover_rate' in request.session:
+        crossover_rate = request.session['crossover_rate']
+    if 'mutation_rate' in request.session:
+        mutation_rate = request.session['mutation_rate']
+    if 'tournament_size' in request.session:
+        tournament_size = request.session['tournament_size']
+    if 'elitism' in request.session:
+        elitism = request.session['elitism']
+    if 'problem_display_ga' in request.session:
+        problem_display = request.session['problem_display_ga']
+    if 'result_display_ga' in request.session:
+        result_display = request.session['result_display_ga']
+
+    if request.method == 'POST':
+        exec_type = request.POST.get('exec_type', exec_type)
+        size = parse_int(request.POST.get('size', size), size)
+        selection = request.POST.get('selection', selection)
+        pop_size = parse_int(request.POST.get('pop_size', pop_size), pop_size)
+        generations = parse_int(request.POST.get('generations', generations), generations)
+        crossover_rate = parse_float(request.POST.get('crossover_rate', crossover_rate), crossover_rate)
+        mutation_rate = parse_float(request.POST.get('mutation_rate', mutation_rate), mutation_rate)
+        tournament_size = parse_int(request.POST.get('tournament_size', tournament_size), tournament_size)
+        elitism = parse_int(request.POST.get('elitism', elitism), elitism)
+        action = request.POST.get('action', '')
+
+        request.session['exec_type_ga'] = exec_type
+        request.session['size_ga'] = size
+        request.session['selection'] = selection
+        request.session['pop_size'] = pop_size
+        request.session['generations'] = generations
+        request.session['crossover_rate'] = crossover_rate
+        request.session['mutation_rate'] = mutation_rate
+        request.session['tournament_size'] = tournament_size
+        request.session['elitism'] = elitism
+
+        cv = CaixeiroViajante(tamanho=size, tipo_execucao=exec_type)
+
+        if action == 'generate':
+            problem_display = cv.gerar_problema()
+            request.session['ga'] = {
+                'distancias': cv.distancias,
+                'exec_type': exec_type,
+                'size': size
+            }
+            result_display = ''
+
+        elif action == 'run':
+            if 'ga' in request.session:
+                cv.distancias = request.session['ga']['distancias']
+                cv.tipo_execucao = request.session['ga']['exec_type']
+            else:
+                problem_display = cv.gerar_problema()
+                request.session['ga'] = {
+                    'distancias': cv.distancias,
+                    'exec_type': exec_type,
+                    'size': size
+                }
+
+            result_display = cv.algoritmos_geneticos(
+                pop_size=pop_size,
+                generations=generations,
+                selection=selection,
+                crossover_rate=crossover_rate,
+                mutation_rate=mutation_rate,
+                tournament_size=tournament_size,
+                elitism=elitism
+            )
+
+        request.session['problem_display_ga'] = problem_display
+        request.session['result_display_ga'] = result_display
+
+    context = {
+        'exec_type': exec_type,
+        'size': size,
+        'selection': selection,
+        'pop_size': pop_size,
+        'generations': generations,
+        'crossover_rate': crossover_rate,
+        'mutation_rate': mutation_rate,
+        'tournament_size': tournament_size,
+        'elitism': elitism,
+        'problem_display': problem_display,
+        'result_display': result_display,
+    }
+
+    return render(request, 'algGeneticos.html', context)
 
 def sobre(request):
     return render(request, 'sobre.html')

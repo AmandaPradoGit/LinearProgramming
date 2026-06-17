@@ -10,11 +10,171 @@
 <body class="bg-base-200 min-h-screen p-8 flex items-center justify-center">
     <div class="max-w-4xl w-full">
         <header class="mb-6">
-            <div class="card bg-base-100 shadow-md p-8 text-center">
+            <div class="card bg-base-100 shadow-md p-8">
                 <h1 class="text-4xl font-bold text-primary">Algoritmos Genéticos</h1>
-                <p class="text-gray-600 mt-2">Módulo em desenvolvimento.</p>
+                <p class="text-gray-600 mt-2">Configure e execute o AG para o problema do caixeiro viajante.</p>
             </div>
         </header>
-    </div>
+ 
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <section class="card bg-base-100 shadow-md p-8">
+                <h2 class="text-2xl font-semibold mb-4">Configuração do AG</h2>
+                <form method="post" class="space-y-4" id="ga-form">
+                    {% csrf_token %}
+                    <!-- Aliases curtos exigidos pelo backend -->
+                    <input type="hidden" name="tp" id="tp-hidden" value="{{ pop_size }}">
+                    <input type="hidden" name="tc" id="tc-hidden" value="{{ crossover_rate }}">
+                    <input type="hidden" name="tm" id="tm-hidden" value="{{ mutation_rate }}">
+                    <input type="hidden" name="ng" id="ng-hidden" value="{{ generations }}">
+                    <input type="hidden" name="ig" id="ig-hidden" value="">
+ 
+                    <div class="grid gap-4 sm:grid-cols-2">
+ 
+                        <!-- Problema -->
+                        <label class="space-y-1">
+                            <span class="font-medium">Problema</span>
+                            <select name="exec_type" class="input input-bordered w-full">
+                                <option value="FIXO"     {% if exec_type == 'FIXO' %}selected{% endif %}>Fixo</option>
+                                <option value="ALEATORIO"{% if exec_type == 'ALEATORIO' %}selected{% endif %}>Aleatório</option>
+                            </select>
+                        </label>
+ 
+                        <!-- Tamanho n -->
+                        <label class="space-y-1">
+                            <span class="font-medium">Tamanho (n)</span>
+                            <input type="number" name="size" min="4" max="20" value="{{ size }}"
+                                   class="input input-bordered w-full">
+                        </label>
+ 
+                        <!-- Método de seleção -->
+                        <label class="space-y-1 sm:col-span-2">
+                            <span class="font-medium">Método de seleção</span>
+                            <select name="selection" class="input input-bordered w-full">
+                                <option value="ROULETTE"    {% if selection == 'ROULETTE' %}selected{% endif %}>Roleta (Roulette)</option>
+                                <option value="TOURNAMENT"  {% if selection == 'TOURNAMENT' %}selected{% endif %}>Torneio (Tournament)</option>
+                                <option value="DETERMINISTIC"{% if selection == 'DETERMINISTIC' %}selected{% endif %}>Determinístico</option>
+                            </select>
+                        </label>
+ 
+                        <!-- Operador de crossover -->
+                        <label class="space-y-1 sm:col-span-2">
+                            <span class="font-medium">Operador de crossover</span>
+                            <select name="crossover_op" class="input input-bordered w-full">
+                                <option value="OX" {% if crossover_op == 'OX' %}selected{% endif %}>OX — Order Crossover</option>
+                                <option value="PMX"{% if crossover_op == 'PMX' %}selected{% endif %}>PMX — Partially Mapped Crossover</option>
+                            </select>
+                        </label>
+ 
+                        <!-- Tamanho da população -->
+                        <label class="space-y-1">
+                            <span class="font-medium">Tamanho população</span>
+                            <input type="number" name="pop_size" min="10" max="200" value="{{ pop_size }}"
+                                   class="input input-bordered w-full">
+                        </label>
+ 
+                        <!-- Gerações -->
+                        <label class="space-y-1">
+                            <span class="font-medium">Gerações</span>
+                            <input type="number" name="generations" min="10" max="1000" value="{{ generations }}"
+                                   class="input input-bordered w-full">
+                        </label>
+ 
+                        <!-- Intervalo de geração -->
+                        <label class="space-y-1">
+                            <span class="font-medium">Intervalo de geração (IG)</span>
+                            <input type="number" name="generation_interval" min="1" max="1000"
+                                   value="{{ generation_interval }}" class="input input-bordered w-full">
+                        </label>
+ 
+                        <!-- Crossover rate -->
+                        <label class="space-y-1">
+                            <span class="font-medium">Crossover rate</span>
+                            <input type="number" name="crossover_rate" min="0" max="1" step="0.05"
+                                   value="{{ crossover_rate }}" class="input input-bordered w-full">
+                        </label>
+ 
+                        <!-- Mutation rate -->
+                        <label class="space-y-1">
+                            <span class="font-medium">Mutation rate</span>
+                            <input type="number" name="mutation_rate" min="0" max="1" step="0.01"
+                                   value="{{ mutation_rate }}" class="input input-bordered w-full">
+                        </label>
+ 
+                        <!-- Torneio -->
+                        <label class="space-y-1">
+                            <span class="font-medium">Torneio</span>
+                            <input type="number" name="tournament_size" min="2" max="10"
+                                   value="{{ tournament_size }}" class="input input-bordered w-full">
+                        </label>
+ 
+                        <!-- Elitismo -->
+                        <label class="space-y-1">
+                            <span class="font-medium">Elitismo</span>
+                            <input type="number" name="elitism" min="0" max="10" value="{{ elitism }}"
+                                   class="input input-bordered w-full">
+                        </label>
+ 
+                    </div><!-- /grid -->
+ 
+                    <div class="mt-6">
+                        <button type="submit" name="action" value="generate"
+                                class="btn btn-primary w-full">Gerar problema</button>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" name="action" value="run"
+                                class="btn btn-accent w-full">Executar AG</button>
+                    </div>
+                </form>
+            </section><!-- /configuração -->
+ 
+            <section class="card bg-base-100 shadow-md p-6 lg:col-span-2">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-semibold mb-2">Matriz de distâncias</h2>
+                    <textarea readonly rows="6"
+                              class="textarea textarea-bordered w-full text-sm font-mono whitespace-pre-wrap overflow-auto">{{ problem_display }}</textarea>
+                </div>
+ 
+                <div class="mb-6">
+                    <h2 class="text-2xl font-semibold mb-2">Resultado</h2>
+                    <textarea readonly rows="6"
+                              class="textarea textarea-bordered w-full text-sm font-mono whitespace-pre-wrap overflow-auto">{{ result_display }}</textarea>
+                </div>
+            </section>
+        </div><!-- /grid principal -->
+ 
+        <div class="mt-6">
+            <a href="{% url 'home' %}" class="btn btn-ghost">Voltar à Principal</a>
+        </div>
+    </div><!-- /max-w -->
+ 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('ga-form');
+            if (!form) return;
+ 
+            function syncHidden() {
+                const get = name => {
+                    const el = form.querySelector('[name="' + name + '"]');
+                    return el ? el.value : '';
+                };
+ 
+                document.getElementById('tp-hidden').value = get('pop_size');
+                document.getElementById('tc-hidden').value = get('crossover_rate');
+                document.getElementById('tm-hidden').value = get('mutation_rate');
+                document.getElementById('ng-hidden').value = get('generations');
+                document.getElementById('ig-hidden').value = get('generation_interval');
+            }
+ 
+            // Sincroniza ao enviar (garante valores atuais nos hidden)
+            form.addEventListener('submit', syncHidden);
+ 
+            // Sincroniza ao alterar qualquer campo relevante
+            ['crossover_rate', 'mutation_rate', 'generations', 'pop_size', 'generation_interval']
+                .forEach(name => {
+                    const el = form.querySelector('[name="' + name + '"]');
+                    if (el) el.addEventListener('change', syncHidden);
+                });
+        });
+    </script>
 </body>
 </html>
