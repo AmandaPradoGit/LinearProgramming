@@ -1,5 +1,4 @@
 import random
-from copy import deepcopy
 from typing import List, Optional, Tuple
 import argparse
 import sys
@@ -50,19 +49,20 @@ def _gerar_populacao_com_matriz(tamanho: int, pop_size: int,
 # ---------------------------------------------------------------------------
 # Métodos de seleção
 # ---------------------------------------------------------------------------
-
 def _selecionar_por_roleta(populacao: List[List[int]], fitness: List[float]) -> List[int]:
     """Seleção por roleta usando ranking linear (retorna cópia).
 
+    Ordena por fitness CRESCENTE: o pior recebe rank 1, o melhor recebe rank N.
+    Fitness = 1/(1+distancia), portanto maior fitness = menor distância = melhor.
     """
     n = len(populacao)
     if n == 0:
         return []
-
-    indices_ordenados = sorted(range(n), key=lambda i: fitness[i], reverse=True)
+    
+    indices_ordenados = sorted(range(n), key=lambda i: fitness[i])
     ranks = [0] * n
     for rank, idx in enumerate(indices_ordenados, start=1):
-        ranks[idx] = rank  # pior recebe rank 1, melhor recebe rank N
+        ranks[idx] = rank  
 
     total = float(sum(ranks))
     escolha = random.uniform(0.0, total)
@@ -70,10 +70,9 @@ def _selecionar_por_roleta(populacao: List[List[int]], fitness: List[float]) -> 
     for idx, rank in enumerate(ranks):
         acumulado += rank
         if acumulado >= escolha:
-            return deepcopy(populacao[idx])
+            return populacao[idx][:]  # Otimizado: fatiamento é mais rápido que deepcopy para List[int]
 
-    # Fallback seguro: retorna o melhor
-    return deepcopy(populacao[indices_ordenados[-1]])
+    return populacao[indices_ordenados[-1]][:]
 
 
 def _selecionar_por_torneio(populacao: List[List[int]], tournament_size: int,
@@ -85,7 +84,7 @@ def _selecionar_por_torneio(populacao: List[List[int]], tournament_size: int,
     k = min(tournament_size, n)
     indices = random.sample(range(n), k)
     melhor_idx = min(indices, key=lambda i: distancias[i])
-    return deepcopy(populacao[melhor_idx])
+    return populacao[melhor_idx][:]  # Otimizado: fatiamento é mais rápido que deepcopy para List[int]
 
 
 def _selecionar_pais(populacao, fitness, distancias, metodo_selecao, tournament_size):
@@ -94,7 +93,7 @@ def _selecionar_pais(populacao, fitness, distancias, metodo_selecao, tournament_
         return _selecionar_por_torneio(populacao, tournament_size, distancias)
     if ms == 'DETERMINISTIC':
         melhor_idx = min(range(len(populacao)), key=lambda i: distancias[i])
-        return deepcopy(populacao[melhor_idx])
+        return populacao[melhor_idx][:]
     return _selecionar_por_roleta(populacao, fitness)
 
 
@@ -118,38 +117,31 @@ def _crossover_ordem(pai1: List[int], pai2: List[int]) -> List[int]:
 
 
 def _crossover_pmx(pai1: List[int], pai2: List[int]) -> List[int]:
-    """Partially Mapped Crossover (PMX).
+    """Partially Mapped Crossover (PMX) — Versão Corrigida.
 
+    Preserva mapeamentos de fatias e resolve colisões seguindo as cadeias corretamente.
     """
     n = len(pai1)
-    filho: List[Optional[int]] = [None] * n
+    filho = [None] * n
     i, j = sorted(random.sample(range(n), 2))
 
+    # Copia o segmento do pai1 para o filho
     filho[i:j + 1] = pai1[i:j + 1]
 
-    mapeamento = {pai2[k]: pai1[k] for k in range(i, j + 1)}
+    # Cria o mapeamento das relações entre o segmento de pai1 e pai2
+    mapeamento = {pai1[k]: pai2[k] for k in range(i, j + 1)}
 
-    # Preenche posições fora do segmento com genes de pai2
+    # Preenche o restante das posições fora do segmento
     for k in range(n):
         if i <= k <= j:
             continue
+        
         gene = pai2[k]
-        visitados_mapa = set()
-        while gene in filho:
-            if gene in visitados_mapa:
-                gene = None
-                break
-            visitados_mapa.add(gene)
-            gene = mapeamento.get(gene, gene)
-        if gene is not None:
-            filho[k] = gene
-
-    # Fallback: preenche posições ainda None com genes de pai2 que ainda faltam
-    presentes = set(x for x in filho if x is not None)
-    faltando = [g for g in pai2 if g not in presentes]
-    for k in range(n):
-        if filho[k] is None:
-            filho[k] = faltando.pop(0)
+        # Se o gene do pai2 colidir com o segmento já copiado (pai1), segue a cadeia
+        while gene in pai1[i:j + 1]:
+            gene = mapeamento[gene]
+            
+        filho[k] = gene
 
     return [int(x) for x in filho]
 
@@ -182,10 +174,7 @@ def _mutacao_adaptativa(individuo: List[int], taxa_base: float,
                         geracoes_sem_melhora: int, patience: int) -> List[int]:
     """Mutação adaptativa — aumenta a taxa quando a população está estagnada.
 
-    Ajuda a escapar de ótimos locais sem abandonar boas soluções já encontradas.
-
-    NOTA: patience deve ser >= 1. O chamador é responsável por garantir isso
-    (use `patience or 1` ao chamar quando patience pode ser 0).
+    ajuda a escapar de ótimos locais sem abandonar boas soluções já encontradas.
     """
     if patience >= 1 and geracoes_sem_melhora > 0:
         fator = 1.0 + (geracoes_sem_melhora / patience) * 2.0
@@ -278,7 +267,7 @@ def algoritmos_geneticos(cv, pop_size=50, generations=200,
                          **kwargs):
     
     if not getattr(cv, 'distancias', None):
-        return "Gere o problema primeiro!"
+        return "Gere o problem primeiro!"
 
     alias_map = {
         'tp': ('pop_size',       int),
@@ -342,7 +331,7 @@ def algoritmos_geneticos(cv, pop_size=50, generations=200,
         melhor_geracao = min(range(len(pop)), key=lambda i: distancias[i])
         if distancias[melhor_geracao] < melhor_valor_global:
             melhor_valor_global  = distancias[melhor_geracao]
-            melhor_global        = deepcopy(pop[melhor_geracao])
+            melhor_global        = pop[melhor_geracao][:]
             geracoes_sem_melhora = 0
         else:
             geracoes_sem_melhora += 1
@@ -364,14 +353,13 @@ def algoritmos_geneticos(cv, pop_size=50, generations=200,
         # --- Nova geração ---
         nova_pop: List[List[int]] = []
 
-        # Elitismo: copia diretamente os melhores
+        # Elitismo: copia diretamente os melhores usando fatiamento rápido
         if elitism > 0:
             indices_ordenados = sorted(range(len(pop)), key=lambda i: distancias[i])
             for idx in indices_ordenados[:elitism]:
-                nova_pop.append(deepcopy(pop[idx]))
+                nova_pop.append(pop[idx][:])
 
         # Cruzamento + mutação
-        # patience or 1: garante divisão segura em _mutacao_adaptativa quando patience=0
         patience_seguro = patience or 1
         while len(nova_pop) < pop_size:
             pai1 = _selecionar_pais(pop, fitness, distancias,
@@ -403,7 +391,7 @@ def algoritmos_geneticos(cv, pop_size=50, generations=200,
         pop = nova_pop
 
     if melhor_global is None:
-        melhor_global       = deepcopy(pop[0])
+        melhor_global       = pop[0][:]
         melhor_valor_global = cv._calcular_distancia(melhor_global)
 
     if usar_2opt:
@@ -439,10 +427,6 @@ def algoritmos_geneticos(cv, pop_size=50, generations=200,
     relatorio += "=" * 60 + "\n"
     return relatorio
 
-
-# ---------------------------------------------------------------------------
-# Teste rápido se executado diretamente
-# ---------------------------------------------------------------------------
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
